@@ -25,4 +25,12 @@ public class ProcessService {
 
         return result;
     }
+
+    public ResponseEntity<String> filterCountries(String name) {
+        String urlCall = url_countries;
+        urlCall += "?q=" + name;
+        ResponseEntity<String> result = template.getForEntity(urlCall, String.class);
+
+        return result;
+    }
 }
