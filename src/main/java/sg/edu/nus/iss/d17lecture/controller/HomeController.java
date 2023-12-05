@@ -1,11 +1,16 @@
 package sg.edu.nus.iss.d17lecture.controller;
 
 import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+import java.util.Map.Entry;
 
 import org.apache.catalina.connector.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -13,6 +18,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonReader;
+import jakarta.json.JsonValue;
+import sg.edu.nus.iss.d17lecture.model.Country;
 import sg.edu.nus.iss.d17lecture.restcontroller.ProcessController;
 import sg.edu.nus.iss.d17lecture.service.ProcessService;
 
@@ -42,17 +49,36 @@ public class HomeController {
     }
 
     @GetMapping("/countries/jsontest")
-    public ResponseEntity<String> listCountries2() {
+    public String listCountries2(Model model) {
         ResponseEntity<String> result = processSvc.getCountries();
 
         String jsonString = result.getBody().toString();
 
         JsonReader jsonReader = Json.createReader(new StringReader(jsonString));
         JsonObject jsonObject = jsonReader.readObject();
-        System.out.println("jsonObject:" + jsonObject);
+        // System.out.println("jsonObject:" + jsonObject);
+
+        JsonObject jsonObjectData = jsonObject.getJsonObject("data");
+        System.out.println("jsonObjectData:" + jsonObjectData);
+        System.out.println("jsonObjectData size: " + jsonObjectData.size());
 
 
-        return result;
+        List<Country> countries = new ArrayList<Country>();
+        Set<Entry<String, JsonValue>> entries = jsonObjectData.entrySet();
+        for(Entry<String, JsonValue> entry: entries) {
+            // System.out.println(entry.getKey() + " > " + entry.getValue().toString());
+            // System.out.println(entry.getKey() + " > " + entry.getValue().asJsonObject().getString("country"));
+
+            countries.add(new Country(entry.getKey(), entry.getValue().asJsonObject().getString("country")));
+        }
+
+        model.addAttribute("countries", countries);
+        return "countrylist";
     }
 
+    @GetMapping(path = "/countrysearch")
+    public String countrySearchForm() {
+        return "countrysearch";
+    }
+    
 }
